@@ -296,7 +296,9 @@ Theorem gt4 : forall (s : strategy) (u : player -> strategy -> nat),
 dominant_strategy s u -> equilibrium s u.
 Proof.
   intros s u Hdom. unfold dominant_strategy in Hdom. unfold equilibrium.
-  intro s'. split; intro _; apply Hdom.
+  intro s'. split.
+  - intro H. apply (Hdom p1 s').
+  - intro H. apply (Hdom p2 s').
 Qed.
     
 
@@ -541,12 +543,8 @@ to lesson / quiz, but no write access.
 Theorem caet4 : forall u, u = student -> access u lesson read /\ 
 access u quiz read /\ (access u lesson write -> False) /\ (access u quiz write -> False).
 Proof.
-  intros u H. rewrite H. unfold access. simpl.
-  repeat split.
-  - reflexivity.
-  - reflexivity.
-  - intro Hf. discriminate Hf.
-  - intro Hf. discriminate Hf.
+  intros u H. subst. unfold access, check_access, check_disk.
+  repeat split; try discriminate.
 Qed.
 
 
@@ -763,21 +761,24 @@ Qed.
 
 Theorem natpax6 : peanoax6 nat mult plus (S O) S.
 Proof.
-  unfold peanoax6. intros x y. ring.
+  unfold peanoax6. intros x y.
+  rewrite <- mult_n_Sm. rewrite add_comm. reflexivity.
 Qed.
 
 
 Theorem natpax7 : peanoax7 nat le plus.
 Proof.
   unfold peanoax7. intros x y. split.
+
   - intro H. induction H.
     + exists O. rewrite add_0_r. reflexivity.
-    + destruct IHle as [n Hn]. exists (S n).
-      rewrite Hn. rewrite <- plus_n_Sm. reflexivity.
-  - intros [n Hn]. rewrite Hn.
+    + destruct IHle as [n Hn].
+      exists (S n). rewrite Hn. rewrite <- plus_n_Sm. reflexivity.
+
+  - intros [n Hn]. subst.
     induction n.
     + rewrite add_0_r. apply le_n.
-    + rewrite <- plus_n_Sm. apply le_S. apply IHn.
+    + rewrite <- plus_n_Sm. apply le_S. exact IHn.
 Qed.
 
 
@@ -794,7 +795,7 @@ Qed.
 7.d (1pt). Prove Theorem natisapeanomodel which states that nat is a model of the Peano Axioms.
 *)
 
-Theorem natisapeanomodel : isapeanomodel nat O (S O) S plus mult le .
+Theorem natisapeanomodel : isapeanomodel nat O (S O) S plus mult le.
 Proof.
   unfold isapeanomodel. repeat split.
   - apply natpax1.
@@ -803,6 +804,7 @@ Proof.
   - apply natpax4.
   - apply natpax5.
   - apply natpax6.
+  - apply natpax7.
   - apply natpax7.
   - apply natpax8.
 Qed.
